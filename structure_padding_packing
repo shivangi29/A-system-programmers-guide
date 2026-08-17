@@ -1,0 +1,40 @@
+Packing in C/C++
+Structure padding is the compiler-inserted unused space between or after members of a structure to satisfy alignment requirements.
+Alignment improves memory access efficiency and is defined by the platform ABI.  
+
+Why Padding Exists
+Modern CPUs access naturally aligned data more efficiently. An int is typically aligned to a 4-byte boundary and a double to an 8-byte boundary. 
+If a member is misaligned, some processors require multiple memory accesses while others may even raise an alignment fault.
+
+Example 1
+struct test { char a; int b; }
+Naive layout: |a|b|b|b|b| (5 bytes) Actual layout: |a|-|-|-|b|b|b|b| (8 bytes) The compiler inserts 3 bytes of padding so that 'int b' starts at offset 4.
+
+Example 2
+struct test1 { char a; short b; } Layout: |a|-|b|b|  -> sizeof = 4
+
+Example 3
+struct test2 { char a; double b; } Layout: |a|-------padding-------|double| sizeof = 16
+
+Tail Padding
+The compiler may also insert padding at the end of a structure so that every element in an array begins at the required alignment boundary.
+Packing
+
+#pragma pack(1) or __attribute__((packed)) removes compiler-inserted padding. Packed structures save memory but may cause slower accesses or alignment faults on some architectures.
+
+When to Use Packing
+  Network protocol headers
+  Binary file formats
+  Memory-mapped hardware registers
+  Memory-constrained embedded systems
+  Structure Reordering
+  Reordering members from largest alignment to smallest often reduces padding and memory usage.
+  Compiler / ABI Dependence
+
+Structure layout depends on the ABI. For example, sizeof(long) is 8 bytes on most Linux/macOS 64-bit systems but 4 bytes on Windows 64-bit.
+
+Best Practices
+Prefer natural alignment unless exact binary layout is required.
+Use #pragma pack only around specific structures.
+Packed structures should not be the default for application code.
+Always verify layouts using sizeof() and offsetof().
